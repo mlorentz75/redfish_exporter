@@ -35,7 +35,6 @@ func createManagerMetricMap() map[string]Metric {
 
 	addToMetricMap(managerMetrics, ManagerSubmanager, "log_service_state", fmt.Sprintf("manager log service state,%s", CommonStateHelp), ManagerLogServiceLabelNames)
 	addToMetricMap(managerMetrics, ManagerSubmanager, "log_service_health_state", fmt.Sprintf("manager log service health state,%s", CommonHealthHelp), ManagerLogServiceLabelNames)
-	// addToMetricMap(managerMetrics, ManagerSubmanager, "log_entry_severity_state", fmt.Sprintf("manager log entry severity state,%s", CommonSeverityHelp), ManagerLogEntryLabelNames)
 
 	return managerMetrics
 }
