@@ -53,21 +53,3 @@ func parseLogService(ch chan<- prometheus.Metric, metrics map[string]Metric, sub
 
 	return
 }
-
-func parseLogEntry(ch chan<- prometheus.Metric, desc *prometheus.Desc, collectorID, logServiceName, logServiceID string, logEntry *redfish.LogEntry, wg *sync.WaitGroup) {
-	defer wg.Done()
-	logEntryName := logEntry.Name
-	logEntryID := logEntry.ID
-	logEntryCode := string(logEntry.EntryCode)
-	logEntryType := string(logEntry.EntryType)
-	logEntryMessageID := logEntry.MessageID
-	logEntrySensorNumber := fmt.Sprint(logEntry.SensorNumber)
-	logEntrySensorType := string(logEntry.SensorType)
-	logEntrySeverityState := logEntry.Severity
-
-	logEntryLabelValues := []string{collectorID, logServiceName, logServiceID, logEntryName, logEntryID, logEntryCode, logEntryType, logEntryMessageID, logEntrySensorNumber, logEntrySensorType}
-
-	if logEntrySeverityStateValue, ok := parseCommonSeverityState(logEntrySeverityState); ok {
-		ch <- prometheus.MustNewConstMetric(desc, prometheus.GaugeValue, logEntrySeverityStateValue, logEntryLabelValues...)
-	}
-}

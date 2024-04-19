@@ -42,12 +42,12 @@ func NewRedfishCollector(host string, username string, password string, logger *
 	if err != nil {
 		collectorLogCtx.WithError(err).Error("error creating redfish client")
 	} else {
-		// chassisCollector := NewChassisCollector(redfishClient, collectorLogCtx)
+		chassisCollector := NewChassisCollector(redfishClient, collectorLogCtx)
 		// systemCollector := NewSystemCollector(redfishClient, collectorLogCtx)
 		managerCollector := NewManagerCollector(redfishClient, collectorLogCtx)
 
 		// collectors = map[string]prometheus.Collector{"chassis": chassisCollector, "system": systemCollector, "manager": managerCollector}
-		collectors = map[string]prometheus.Collector{"manager": managerCollector}
+		collectors = map[string]prometheus.Collector{"chassis": chassisCollector, "manager": managerCollector}
 	}
 
 	return &RedfishCollector{
