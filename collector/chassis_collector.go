@@ -167,7 +167,6 @@ func (c *ChassisCollector) Collect(ch chan<- prometheus.Metric) {
 				}
 
 				// process fans
-
 				chassisFans := chassisThermal.Fans
 				wg2 := &sync.WaitGroup{}
 				wg2.Add(len(chassisFans))
@@ -208,7 +207,6 @@ func (c *ChassisCollector) Collect(ch chan<- prometheus.Metric) {
 			}
 
 			// process NetapAdapter
-
 			networkAdapters, err := chassis.NetworkAdapters()
 			if err != nil {
 				chassisLogContext.WithField("operation", "chassis.NetworkAdapters()").WithError(err).Error("error getting network adapters data from chassis")
@@ -267,7 +265,7 @@ func parseChassisTemperature(ch chan<- prometheus.Metric, chassisID string, chas
 	chassisTemperatureStatus := chassisTemperature.Status
 	chassisTemperatureLabelvalues := []string{"temperature", chassisID, chassisTemperatureSensorName, chassisTemperatureSensorID}
 
-	chassisTemperatureStatusHealth :=chassisTemperatureStatus.Health
+	chassisTemperatureStatusHealth := chassisTemperatureStatus.Health
 	if chassisTemperatureStatusHealthValue, ok := parseCommonStatusHealth(chassisTemperatureStatusHealth); ok {
 		ch <- prometheus.MustNewConstMetric(chassisMetrics["chassis_temperature_sensor_health"].desc, prometheus.GaugeValue, chassisTemperatureStatusHealthValue, chassisTemperatureLabelvalues...)
 	}

@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"sync"
+
+	"os"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -27,7 +28,7 @@ type HostConfig struct {
 func (sc *SafeConfig) ReloadConfig(configFile string) error {
 	var c = &Config{}
 
-	yamlFile, err := ioutil.ReadFile(configFile)
+	yamlFile, err := os.ReadFile(configFile)
 	if err != nil {
 		return err
 	}
@@ -71,7 +72,7 @@ func (sc *SafeConfig) HostConfigForGroup(group string) (*HostConfig, error) {
 	return &HostConfig{}, fmt.Errorf("no credentials found for group %s", group)
 }
 
-func (sc *SafeConfig) AppLogLevel() (string) {
+func (sc *SafeConfig) AppLogLevel() string {
 	sc.Lock()
 	defer sc.Unlock()
 	logLevel := sc.C.Loglevel

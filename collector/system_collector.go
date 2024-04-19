@@ -177,7 +177,7 @@ func (s *SystemCollector) Collect(ch chan<- prometheus.Metric) {
 			if systemTotalMemoryHealthStateValue, ok := parseCommonStatusHealth(systemTotalMemoryHealthState); ok {
 				ch <- prometheus.MustNewConstMetric(s.metrics["system_total_memory_health_state"].desc, prometheus.GaugeValue, systemTotalMemoryHealthStateValue, systemLabelValues...)
 			}
-			
+
 			// get system OdataID
 			//systemOdataID := system.ODataID
 
@@ -261,31 +261,6 @@ func (s *SystemCollector) Collect(ch chan<- prometheus.Metric) {
 							go parseDrive(ch, systemHostName, drive, wg4)
 						}
 					}
-
-					//					if storagecontrollers, err := storage.StorageControllers(); err != nil {
-					//						log.Infof("Errors Getting storagecontrollers from system storage : %s", err)
-					//					} else {
-					//
-					//						for _, controller := range storagecontrollers {
-					//
-					//							controllerODataIDslice := strings.Split(controller.ODataID, "/")
-					//							controllerName := controllerODataIDslice[len(controllerODataIDslice)-1]
-					//							controllerState := controller.Status.State
-					//							controllerHealthState := controller.Status.Health
-					//							controllerLabelValues := []string{ "storage_controller", controllerName, systemHostName)
-					//							if controllerStateValue,ok := parseCommonStatusState(controllerState); ok {
-					//								ch <- prometheus.MustNewConstMetric(s.metrics["system_storage_controller_state"].desc, prometheus.GaugeValue, controllerStateValue, //controllerLabelValues...)
-					//
-					//							}
-					//							if controllerHealthStateValue,ok := parseCommonStatusHealth(controllerHealthState); ok {
-					//								ch <- prometheus.MustNewConstMetric(s.metrics["system_storage_controller_health_state"].desc, prometheus.GaugeValue, controllerHealthStateValue, //controllerLabelValues...)
-					//
-					//							}
-					//
-					//						}
-					//
-					//					}
-
 				}
 			}
 			//process pci devices

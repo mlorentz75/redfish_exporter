@@ -45,9 +45,6 @@ func init() {
 	rootLoggerCtx = alog.WithFields(alog.Fields{
 		"app": "redfish_exporter",
 	})
-
-	hostname, _ := os.Hostname()
-	rootLoggerCtx.Infof("version %s, build reversion %s, build branch %s, build at %s on host %s", Version, BuildRevision, BuildBranch, BuildTime, hostname)
 }
 
 func reloadHandler(configLoggerCtx *alog.Entry) http.HandlerFunc {
@@ -75,6 +72,8 @@ func reloadHandler(configLoggerCtx *alog.Entry) http.HandlerFunc {
 func SetLogLevel() {
 	logLevel, err := alog.ParseLevel(sc.AppLogLevel())
 	if err != nil {
+		alog.Log.WithError(err).Error("error parsing log level")
+		// Default to info if the log level is not valid
 		logLevel = alog.InfoLevel
 	}
 
@@ -144,6 +143,8 @@ func main() {
 		configLoggerCtx.WithError(err).Error("error parsing config file")
 		panic(err)
 	}
+
+	println(sc.C.Loglevel)
 
 	configLoggerCtx.WithField("operation", "sc.ReloadConfig").Info("config file loaded")
 
