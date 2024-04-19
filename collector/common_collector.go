@@ -51,15 +51,6 @@ func parseLogService(ch chan<- prometheus.Metric, metrics map[string]Metric, sub
 		ch <- prometheus.MustNewConstMetric(metrics[fmt.Sprintf("%s_%s", subsystem, "log_service_health_state")].desc, prometheus.GaugeValue, logServiceHealthStateValue, logServiceLabelValues...)
 	}
 
-	logEntries, err := logService.Entries()
-	if err != nil {
-		return
-	}
-	wg2 := &sync.WaitGroup{}
-	wg2.Add(len(logEntries))
-	for _, logEntry := range logEntries {
-		go parseLogEntry(ch, metrics[fmt.Sprintf("%s_%s", subsystem, "log_entry_severity_state")].desc, collectorID, logServiceName, logServiceID, logEntry, wg2)
-	}
 	return
 }
 

@@ -15,15 +15,10 @@ import (
 
 // Metric name parts.
 const (
-	// Exporter namespace.
 	namespace = "redfish"
-	// Subsystem(s).
-	exporter = "exporter"
-	// Math constant for picoseconds to seconds.
-	picoSeconds = 1e12
+	exporter  = "exporter"
 )
 
-// Metric descriptors.
 var (
 	totalScrapeDurationDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, exporter, "collector_duration_seconds"),
@@ -47,11 +42,12 @@ func NewRedfishCollector(host string, username string, password string, logger *
 	if err != nil {
 		collectorLogCtx.WithError(err).Error("error creating redfish client")
 	} else {
-		chassisCollector := NewChassisCollector(redfishClient, collectorLogCtx)
-		systemCollector := NewSystemCollector(redfishClient, collectorLogCtx)
+		// chassisCollector := NewChassisCollector(redfishClient, collectorLogCtx)
+		// systemCollector := NewSystemCollector(redfishClient, collectorLogCtx)
 		managerCollector := NewManagerCollector(redfishClient, collectorLogCtx)
 
-		collectors = map[string]prometheus.Collector{"chassis": chassisCollector, "system": systemCollector, "manager": managerCollector}
+		// collectors = map[string]prometheus.Collector{"chassis": chassisCollector, "system": systemCollector, "manager": managerCollector}
+		collectors = map[string]prometheus.Collector{"manager": managerCollector}
 	}
 
 	return &RedfishCollector{

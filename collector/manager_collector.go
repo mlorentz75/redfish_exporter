@@ -15,7 +15,6 @@ var (
 	ManagerLabelNames = []string{"manager_id", "name", "model", "type"}
 
 	ManagerLogServiceLabelNames = []string{"manager_id", "log_service", "log_service_id", "log_service_enabled", "log_service_overwrite_policy"}
-	ManagerLogEntryLabelNames   = []string{"manager_id", "log_service", "log_service_id", "log_entry", "log_entry_id", "log_entry_code", "log_entry_type", "log_entry_message_id", "log_entry_sensor_number", "log_entry_sensor_type"}
 
 	managerMetrics = createManagerMetricMap()
 )
@@ -36,7 +35,7 @@ func createManagerMetricMap() map[string]Metric {
 
 	addToMetricMap(managerMetrics, ManagerSubmanager, "log_service_state", fmt.Sprintf("manager log service state,%s", CommonStateHelp), ManagerLogServiceLabelNames)
 	addToMetricMap(managerMetrics, ManagerSubmanager, "log_service_health_state", fmt.Sprintf("manager log service health state,%s", CommonHealthHelp), ManagerLogServiceLabelNames)
-	addToMetricMap(managerMetrics, ManagerSubmanager, "log_entry_severity_state", fmt.Sprintf("manager log entry severity state,%s", CommonSeverityHelp), ManagerLogEntryLabelNames)
+	// addToMetricMap(managerMetrics, ManagerSubmanager, "log_entry_severity_state", fmt.Sprintf("manager log entry severity state,%s", CommonSeverityHelp), ManagerLogEntryLabelNames)
 
 	return managerMetrics
 }
