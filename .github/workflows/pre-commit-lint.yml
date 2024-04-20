@@ -1,4 +1,4 @@
-name: ci-pipeline
+name: pre-commit-lint
 
 on:
   pull_request:
