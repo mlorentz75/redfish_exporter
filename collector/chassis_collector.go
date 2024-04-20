@@ -2,11 +2,11 @@ package collector
 
 import (
 	"fmt"
+	"log/slog"
 	"math"
 	"strings"
 	"sync"
 
-	"github.com/apex/log"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stmcginnis/gofish"
 	"github.com/stmcginnis/gofish/redfish"
@@ -35,7 +35,6 @@ type ChassisCollector struct {
 	redfishClient         *gofish.APIClient
 	metrics               map[string]Metric
 	collectorScrapeStatus *prometheus.GaugeVec
-	Log                   *log.Entry
 }
 
 func createChassisMetricMap() map[string]Metric {
@@ -88,15 +87,12 @@ func createChassisMetricMap() map[string]Metric {
 }
 
 // NewChassisCollector returns a collector that collecting chassis statistics
-func NewChassisCollector(redfishClient *gofish.APIClient, logger *log.Entry) *ChassisCollector {
+func NewChassisCollector(redfishClient *gofish.APIClient) *ChassisCollector {
 	// get service from redfish client
 
 	return &ChassisCollector{
 		redfishClient: redfishClient,
 		metrics:       chassisMetrics,
-		Log: logger.WithFields(log.Fields{
-			"collector": "ChassisCollector",
-		}),
 		collectorScrapeStatus: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Namespace: namespace,
@@ -119,17 +115,18 @@ func (c *ChassisCollector) Describe(ch chan<- *prometheus.Desc) {
 
 // Collect implemented prometheus.Collector
 func (c *ChassisCollector) Collect(ch chan<- prometheus.Metric) {
-	collectorLogContext := c.Log
+
+	logger := slog.Default().With(slog.String("collector", "ChassisCollector"))
 	service := c.redfishClient.Service
 
 	// get a list of chassis from service
 	if chassises, err := service.Chassis(); err != nil {
-		collectorLogContext.WithField("operation", "service.Chassis()").WithError(err).Error("error getting chassis from service")
+		logger.Error("error getting chassis from service", slog.String("operation", "service.Chassis()"), slog.Any("error", err))
 	} else {
 		// process the chassises
 		for _, chassis := range chassises {
-			chassisLogContext := collectorLogContext.WithField("Chassis", chassis.ID)
-			chassisLogContext.Info("collector scrape started")
+			chassisLogger := logger.With(slog.String("Chassis", chassis.ID))
+			chassisLogger.Info("collector scrape started")
 			chassisID := chassis.ID
 			chassisStatus := chassis.Status
 			chassisStatusState := chassisStatus.State
@@ -151,9 +148,9 @@ func (c *ChassisCollector) Collect(ch chan<- prometheus.Metric) {
 
 			chassisThermal, err := chassis.Thermal()
 			if err != nil {
-				chassisLogContext.WithField("operation", "chassis.Thermal()").WithError(err).Error("error getting thermal data from chassis")
+				chassisLogger.Error("error getting thermal data from chassis", slog.String("operation", "chassis.Thermal()"), slog.Any("error", err))
 			} else if chassisThermal == nil {
-				chassisLogContext.WithField("operation", "chassis.Thermal()").Info("no thermal data found")
+				chassisLogger.Info("no thermal data found", slog.String("operation", "chassis.Thermal()"))
 			} else {
 				// process temperature
 				chassisTemperatures := chassisThermal.Temperatures
@@ -175,9 +172,9 @@ func (c *ChassisCollector) Collect(ch chan<- prometheus.Metric) {
 
 			chassisPowerInfo, err := chassis.Power()
 			if err != nil {
-				chassisLogContext.WithField("operation", "chassis.Power()").WithError(err).Error("error getting power data from chassis")
+				chassisLogger.Error("error getting power data from chassis", slog.String("operation", "chassis.Power()"), slog.Any("error", err))
 			} else if chassisPowerInfo == nil {
-				chassisLogContext.WithField("operation", "chassis.Power()").Info("no power data found")
+				chassisLogger.Info("no power data found", slog.String("operation", "chassis.Power()"))
 			} else {
 				// power voltages
 				chassisPowerInfoVoltages := chassisPowerInfo.Voltages
@@ -207,16 +204,16 @@ func (c *ChassisCollector) Collect(ch chan<- prometheus.Metric) {
 			// process NetapAdapter
 			networkAdapters, err := chassis.NetworkAdapters()
 			if err != nil {
-				chassisLogContext.WithField("operation", "chassis.NetworkAdapters()").WithError(err).Error("error getting network adapters data from chassis")
+				chassisLogger.Error("error getting network adapters data from chassis", slog.String("operation", "chassis.NetworkAdapters()"), slog.Any("error", err))
 			} else if networkAdapters == nil {
-				chassisLogContext.WithField("operation", "chassis.NetworkAdapters()").Info("no network adapters data found")
+				chassisLogger.Info("no network adapters data found", slog.String("operation", "chassis.NetworkAdapters()"))
 			} else {
 				wg5 := &sync.WaitGroup{}
 				wg5.Add(len(networkAdapters))
 
 				for _, networkAdapter := range networkAdapters {
 					if err = parseNetworkAdapter(ch, chassisID, networkAdapter, wg5); err != nil {
-						chassisLogContext.WithField("operation", "chassis.NetworkAdapters()").WithError(err).Error("error getting network ports from network adapter")
+						chassisLogger.Error("error getting network ports from network adapter", slog.String("operation", "chassis.NetworkAdapters()"), slog.Any("error", err))
 					}
 				}
 			}
@@ -236,20 +233,20 @@ func (c *ChassisCollector) Collect(ch chan<- prometheus.Metric) {
 			// process log services
 			logServices, err := chassis.LogServices()
 			if err != nil {
-				chassisLogContext.WithField("operation", "chassis.LogServices()").WithError(err).Error("error getting log services from chassis")
+				chassisLogger.Error("error getting log services from chassis", slog.String("operation", "chassis.LogServices()"), slog.Any("error", err))
 			} else if logServices == nil {
-				chassisLogContext.WithField("operation", "chassis.LogServices()").Info("no log services found")
+				chassisLogger.Info("no log services found", slog.String("operation", "chassis.LogServices()"))
 			} else {
 				wg6 := &sync.WaitGroup{}
 				wg6.Add(len(logServices))
 
 				for _, logService := range logServices {
 					if err = parseLogService(ch, chassisMetrics, ChassisSubsystem, chassisID, logService, wg6); err != nil {
-						chassisLogContext.WithField("operation", "chassis.LogServices()").WithError(err).Error("error getting log entries from log service")
+						chassisLogger.Error("error getting log entries from log service", slog.String("operation", "chassis.LogServices()"), slog.Any("error", err))
 					}
 				}
 			}
-			chassisLogContext.Info("collector scrape completed")
+			chassisLogger.Info("collector scrape completed")
 		}
 	}
 

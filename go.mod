@@ -3,7 +3,6 @@ module github.com/jenningsloy318/redfish_exporter
 go 1.21
 
 require (
-	github.com/apex/log v1.9.0
 	github.com/go-kit/log v0.2.1
 	github.com/golangci/golangci-lint v1.57.2
 	github.com/prometheus/client_golang v1.19.0
