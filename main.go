@@ -2,6 +2,7 @@ package main
 
 import (
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,7 +13,7 @@ import (
 	"github.com/jenningsloy318/redfish_exporter/collector"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/log"
+
 	"github.com/prometheus/exporter-toolkit/web"
 	webflag "github.com/prometheus/exporter-toolkit/web/kingpinflag"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
@@ -131,7 +132,7 @@ func metricsHandler() http.HandlerFunc {
 }
 
 func main() {
-	log.AddFlags(kingpin.CommandLine)
+
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
 	kitlogger := kitlog.NewLogfmtLogger(os.Stderr)

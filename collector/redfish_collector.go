@@ -154,17 +154,6 @@ func parseCommonStatusState(status gofishcommon.State) (float64, bool) {
 	return float64(0), false
 }
 
-func parseCommonSeverityState(severity redfish.EventSeverity) (float64, bool) {
-	if bytes.Equal([]byte(severity), []byte("OK")) {
-		return float64(1), true
-	} else if bytes.Equal([]byte(severity), []byte("Warning")) {
-		return float64(2), true
-	} else if bytes.Equal([]byte(severity), []byte("Critical")) {
-		return float64(3), true
-	}
-	return float64(0), false
-}
-
 func parseCommonPowerState(status redfish.PowerState) (float64, bool) {
 	if bytes.Equal([]byte(status), []byte("On")) {
 		return float64(1), true
@@ -202,17 +191,6 @@ func boolToFloat64(data bool) float64 {
 	}
 	return float64(0)
 
-}
-
-func parsePhySecReArmMethod(method redfish.IntrusionSensorReArm) (float64, bool) {
-	if bytes.Equal([]byte(method), []byte("Manual")) {
-		return float64(1), true
-	}
-	if bytes.Equal([]byte(method), []byte("Automatic")) {
-		return float64(2), true
-	}
-
-	return float64(0), false
 }
 
 func parsePhySecIntrusionSensor(method redfish.IntrusionSensor) (float64, bool) {
