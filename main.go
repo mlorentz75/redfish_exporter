@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"io"
 	"log"
 	"net/http"
@@ -15,8 +16,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/prometheus/exporter-toolkit/web"
-	webflag "github.com/prometheus/exporter-toolkit/web/kingpinflag"
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
@@ -27,15 +26,13 @@ var (
 	BuildHost     string
 	rootLoggerCtx *alog.Entry
 
-	configFile = kingpin.Flag(
-		"config.file",
-		"Path to configuration file.",
-	).String()
-	webConfig     = webflag.AddFlags(kingpin.CommandLine)
-	listenAddress = kingpin.Flag(
+	webConfig     = flag.String("web.config", "", "Path to web configuration file.")
+	configFile    = flag.String("config.file", "config.yml", "Path to configuration file.")
+	listenAddress = flag.String(
 		"web.listen-address",
+		":9610",
 		"Address to listen on for web interface and telemetry.",
-	).Default(":9610").String()
+	)
 	sc = &SafeConfig{
 		C: &Config{},
 	}
@@ -133,8 +130,8 @@ func metricsHandler() http.HandlerFunc {
 
 func main() {
 
-	kingpin.HelpFlag.Short('h')
-	kingpin.Parse()
+	flag.Parse()
+
 	kitlogger := kitlog.NewLogfmtLogger(os.Stderr)
 
 	configLoggerCtx := rootLoggerCtx.WithField("config", *configFile)
