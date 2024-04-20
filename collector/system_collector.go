@@ -33,6 +33,7 @@ var (
 type SystemCollector struct {
 	redfishClient *gofish.APIClient
 	metrics       map[string]Metric
+	logger        *slog.Logger
 	prometheus.Collector
 	collectorScrapeStatus *prometheus.GaugeVec
 }
@@ -93,10 +94,11 @@ func createSystemMetricMap() map[string]Metric {
 }
 
 // NewSystemCollector returns a collector that collecting memory statistics
-func NewSystemCollector(redfishClient *gofish.APIClient) *SystemCollector {
+func NewSystemCollector(redfishClient *gofish.APIClient, logger *slog.Logger) *SystemCollector {
 	return &SystemCollector{
 		redfishClient: redfishClient,
 		metrics:       systemMetrics,
+		logger:        logger,
 		collectorScrapeStatus: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Namespace: namespace,
@@ -119,7 +121,7 @@ func (s *SystemCollector) Describe(ch chan<- *prometheus.Desc) {
 // Collect implements prometheus.Collector.
 func (s *SystemCollector) Collect(ch chan<- prometheus.Metric) {
 
-	logger := slog.Default().With(slog.String("collector", "SystemCollector"))
+	logger := s.logger.With(slog.String("collector", "SystemCollector"))
 	service := s.redfishClient.Service
 
 	// get a list of systems from service

@@ -39,13 +39,15 @@ type RedfishCollector struct {
 func NewRedfishCollector(host string, username string, password string) *RedfishCollector {
 	var collectors map[string]prometheus.Collector
 
+	targetLogger := slog.Default().With(slog.String("target", host))
+
 	redfishClient, err := newRedfishClient(host, username, password)
 	if err != nil {
 		slog.Error("error creating redfish client", slog.Any("error", err))
 	} else {
-		chassisCollector := NewChassisCollector(redfishClient)
-		systemCollector := NewSystemCollector(redfishClient)
-		managerCollector := NewManagerCollector(redfishClient)
+		chassisCollector := NewChassisCollector(redfishClient, targetLogger)
+		systemCollector := NewSystemCollector(redfishClient, targetLogger)
+		managerCollector := NewManagerCollector(redfishClient, targetLogger)
 
 		collectors = map[string]prometheus.Collector{
 			"chassis": chassisCollector,

@@ -34,6 +34,7 @@ var (
 type ChassisCollector struct {
 	redfishClient         *gofish.APIClient
 	metrics               map[string]Metric
+	logger                *slog.Logger
 	collectorScrapeStatus *prometheus.GaugeVec
 }
 
@@ -87,12 +88,13 @@ func createChassisMetricMap() map[string]Metric {
 }
 
 // NewChassisCollector returns a collector that collecting chassis statistics
-func NewChassisCollector(redfishClient *gofish.APIClient) *ChassisCollector {
+func NewChassisCollector(redfishClient *gofish.APIClient, logger *slog.Logger) *ChassisCollector {
 	// get service from redfish client
 
 	return &ChassisCollector{
 		redfishClient: redfishClient,
 		metrics:       chassisMetrics,
+		logger:        logger,
 		collectorScrapeStatus: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Namespace: namespace,
@@ -116,7 +118,7 @@ func (c *ChassisCollector) Describe(ch chan<- *prometheus.Desc) {
 // Collect implemented prometheus.Collector
 func (c *ChassisCollector) Collect(ch chan<- prometheus.Metric) {
 
-	logger := slog.Default().With(slog.String("collector", "ChassisCollector"))
+	logger := c.logger.With(slog.String("collector", "ChassisCollector"))
 	service := c.redfishClient.Service
 
 	// get a list of chassis from service
