@@ -8,6 +8,6 @@ RUN go build -o /build/redfish_exporter
 FROM scratch
 
 COPY --from=builder /build/redfish_exporter /redfish_exporter
-COPY config.yml.example redfish_exporter.yml
+COPY config.example.yml redfish_exporter.yml
 CMD ["/redfish_exporter","--config.file","/redfish_exporter.yml"]
 EXPOSE 9610

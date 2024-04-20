@@ -13,9 +13,6 @@
 
 build/
 
-*.yml
-*.yaml
-
 redfish_exporter
 
 # Editor backup files
@@ -26,7 +23,3 @@ config.yml
 
 # IDE files
 .vscode
-
-# Commit all Helm chart files
-!helm/**
-helm/*.lock
