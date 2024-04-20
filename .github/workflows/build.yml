@@ -1,6 +1,6 @@
 name: build redfish exporter package
 
-on: 
+on:
   issue_comment:
     types:
     - edited

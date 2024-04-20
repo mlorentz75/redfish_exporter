@@ -47,7 +47,7 @@ or we can also build a docker image  using [Dockerfile](./Dockerfile)
   `  for more options.
 
 - running in container
-  
+
   Also if you build it as a docker image, you can also run in container, just remember to replace your config  `/etc/prometheus/redfish_exporter.yml` in container
 ## Scraping
 

@@ -1,10 +1,10 @@
 hosts:
   default:
     username: user
-    password: pass 
+    password: pass
   192.168.100.1:
     username: different_user
-    password: different_pass 
+    password: different_pass
 groups:
   group1:
     username: group1_user
