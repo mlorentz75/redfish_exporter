@@ -9,7 +9,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	alog "github.com/apex/log"
+	"log/slog"
+
 	kitlog "github.com/go-kit/log"
 	"github.com/jenningsloy318/redfish_exporter/collector"
 	"github.com/prometheus/client_golang/prometheus"
@@ -24,7 +25,6 @@ var (
 	BuildBranch   string
 	BuildTime     string
 	BuildHost     string
-	rootLoggerCtx *alog.Entry
 
 	webConfig     = flag.String("web.config", "", "Path to web configuration file.")
 	configFile    = flag.String("config.file", "config.yml", "Path to configuration file.")
@@ -39,43 +39,26 @@ var (
 	reloadCh chan chan error
 )
 
-func init() {
-	rootLoggerCtx = alog.WithFields(alog.Fields{
-		"app": "redfish_exporter",
-	})
-}
-
-func reloadHandler(configLoggerCtx *alog.Entry) http.HandlerFunc {
+func reloadHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "POST" || r.Method == "PUT" {
-			configLoggerCtx.Info("Triggered configuration reload from /-/reload HTTP endpoint")
+			slog.Info("Triggered configuration reload from /-/reload HTTP endpoint")
 			err := sc.ReloadConfig(*configFile)
 			if err != nil {
-				configLoggerCtx.WithError(err).Error("failed to reload config file")
+				slog.Error("failed to reload config file", slog.Any("error", err))
 				http.Error(w, "failed to reload config file", http.StatusInternalServerError)
 			}
-			configLoggerCtx.WithField("operation", "sc.ReloadConfig").Info("config file reloaded")
+			slog.Info("config file reloaded", slog.String("operation", "sc.ReloadConfig"))
 
 			w.WriteHeader(http.StatusOK)
 			_, err = io.WriteString(w, "Configuration reloaded successfully!")
 			if err != nil {
-				configLoggerCtx.Warn("failed to send configuration reload status message")
+				slog.Warn("failed to send configuration reload status message")
 			}
 		} else {
 			http.Error(w, "Only PUT and POST methods are allowed", http.StatusBadRequest)
 		}
 	}
-}
-
-func SetLogLevel() {
-	logLevel, err := alog.ParseLevel(sc.AppLogLevel())
-	if err != nil {
-		alog.Log.WithError(err).Error("error parsing log level")
-		// Default to info if the log level is not valid
-		logLevel = alog.InfoLevel
-	}
-
-	alog.SetLevel(logLevel)
 }
 
 // define new http handleer
@@ -87,8 +70,8 @@ func metricsHandler() http.HandlerFunc {
 			http.Error(w, "'target' parameter must be specified", 400)
 			return
 		}
-		targetLoggerCtx := rootLoggerCtx.WithField("target", target)
-		targetLoggerCtx.Info("scraping target host")
+
+		slog.Info("Scraping target host", slog.String("target", target))
 
 		var (
 			hostConfig *HostConfig
@@ -102,7 +85,7 @@ func metricsHandler() http.HandlerFunc {
 		if ok && len(group[0]) >= 1 {
 			// Trying to get hostConfig from group.
 			if hostConfig, err = sc.HostConfigForGroup(group[0]); err != nil {
-				targetLoggerCtx.WithError(err).Error("error getting credentials")
+				slog.Error("error getting credentials", slog.Any("error", err))
 				return
 			}
 		}
@@ -110,12 +93,12 @@ func metricsHandler() http.HandlerFunc {
 		// Always falling back to single host config when group config failed.
 		if hostConfig == nil {
 			if hostConfig, err = sc.HostConfigForTarget(target); err != nil {
-				targetLoggerCtx.WithError(err).Error("error getting credentials")
+				slog.Error("error getting credentials", slog.Any("error", err))
 				return
 			}
 		}
 
-		collector := collector.NewRedfishCollector(target, hostConfig.Username, hostConfig.Password, targetLoggerCtx)
+		collector := collector.NewRedfishCollector(target, hostConfig.Username, hostConfig.Password)
 		registry.MustRegister(collector)
 		gatherers := prometheus.Gatherers{
 			prometheus.DefaultGatherer,
@@ -128,25 +111,40 @@ func metricsHandler() http.HandlerFunc {
 	}
 }
 
+// Parse the log leven from input
+func parseLogLevel(level string) slog.Level {
+	ret := slog.LevelInfo
+	if level == "debug" {
+		ret = slog.LevelDebug
+	} else if level == "warning" {
+		ret = slog.LevelWarn
+	} else if level == "error" {
+		ret = slog.LevelError
+	}
+	return ret
+}
+
 func main() {
 
+	slog.Info("Starting redfish_exporter")
 	flag.Parse()
 
 	kitlogger := kitlog.NewLogfmtLogger(os.Stderr)
 
-	configLoggerCtx := rootLoggerCtx.WithField("config", *configFile)
-	configLoggerCtx.Info("starting app")
 	// load config  first time
 	if err := sc.ReloadConfig(*configFile); err != nil {
-		configLoggerCtx.WithError(err).Error("error parsing config file")
+		slog.Error("Error parsing config file", slog.Any("error", err))
 		panic(err)
 	}
 
-	println(sc.C.Loglevel)
+	// Setup dinal logger from config
+	opts := &slog.HandlerOptions{
+		Level: parseLogLevel(sc.C.Loglevel),
+	}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, opts))
+	slog.SetDefault(logger)
 
-	configLoggerCtx.WithField("operation", "sc.ReloadConfig").Info("config file loaded")
-
-	SetLogLevel()
+	slog.Info("Config successfuly parsed", slog.String("loglevel", opts.Level.Level().String()))
 
 	// load config in background to watch for config changes
 	hup := make(chan os.Signal, 1)
@@ -158,24 +156,24 @@ func main() {
 			select {
 			case <-hup:
 				if err := sc.ReloadConfig(*configFile); err != nil {
-					configLoggerCtx.WithError(err).Error("failed to reload config file")
+					slog.Error("failed to reload config file", slog.Any("error", err))
 					break
 				}
-				configLoggerCtx.WithField("operation", "sc.ReloadConfig").Info("config file reload")
+				slog.Info("config file reload", slog.String("operation", "sc.ReloadConfig"))
 			case rc := <-reloadCh:
 				if err := sc.ReloadConfig(*configFile); err != nil {
-					configLoggerCtx.WithError(err).Error("failed to reload config file")
+					slog.Error("failed to reload config file", slog.Any("error", err))
 					rc <- err
 					break
 				}
-				configLoggerCtx.WithField("operation", "sc.ReloadConfig").Info("config file reloaded")
+				slog.Info("config file reloaded", slog.String("operation", "sc.ReloadConfig"))
 				rc <- nil
 			}
 		}
 	}()
 
-	http.Handle("/redfish", metricsHandler())                // Regular metrics endpoint for local Redfish metrics.
-	http.Handle("/-/reload", reloadHandler(configLoggerCtx)) // HTTP endpoint for triggering configuration reload
+	http.Handle("/redfish", metricsHandler()) // Regular metrics endpoint for local Redfish metrics.
+	http.Handle("/-/reload", reloadHandler()) // HTTP endpoint for triggering configuration reload
 	http.Handle("/metrics", promhttp.Handler())
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -196,7 +194,7 @@ func main() {
             </html>`))
 	})
 
-	rootLoggerCtx.Infof("app started. listening on %s", *listenAddress)
+	slog.Info("Exporter started", slog.String("listenAddress", *listenAddress))
 	srv := &http.Server{Addr: *listenAddress}
 	err := web.ListenAndServe(srv, *webConfig, kitlogger)
 	if err != nil {
