@@ -1,9 +1,12 @@
 project_name: redfish_exporter
+builds:
+  - id: default
+    goos:
+    - linux
 dockers:
-  - id: gcr.io
+  - id: ghcr.io
     image_templates:
-      - "gcr.io/flxpeters/{{ .ProjectName }}:{{ .Tag }}"
-      - "gcr.io/flxpeters/{{ .ProjectName }}:latest"
-    skip_push: true
+      - "ghcr.io/flxpeters/{{ .ProjectName }}:{{ .Tag }}"
+      - "ghcr.io/flxpeters/{{ .ProjectName }}:latest"
     extra_files:
       - config.example.yml
