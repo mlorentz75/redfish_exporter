@@ -1,0 +1,9 @@
+project_name: redfish_exporter
+dockers:
+  - id: gcr.io
+    image_templates:
+      - "gcr.io/flxpeters/{{ .ProjectName }}:{{ .Tag }}"
+      - "gcr.io/flxpeters/{{ .ProjectName }}:latest"
+    skip_push: true
+    extra_files:
+      - config.example.yml
