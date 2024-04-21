@@ -1,4 +1,7 @@
 # redfish_exporter
+
+[![test-and-lint](https://github.com/FlxPeters/redfish_exporter/actions/workflows/test-and-lint.yml/badge.svg)](https://github.com/FlxPeters/redfish_exporter/actions/workflows/test-and-lint.yml)
+
 A prometheus exporter to get  metrics from redfish based servers such as lenovo/dell/Supermicro servers.
 
 ## Configuration
