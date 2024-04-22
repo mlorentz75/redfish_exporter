@@ -1,12 +1,15 @@
 # redfish_exporter
 
 [![test-and-lint](https://github.com/FlxPeters/redfish_exporter/actions/workflows/test-and-lint.yml/badge.svg)](https://github.com/FlxPeters/redfish_exporter/actions/workflows/test-and-lint.yml)
+[![goreleaser](https://github.com/FlxPeters/redfish_exporter/actions/workflows/build-goreleaser.yml/badge.svg)](https://github.com/FlxPeters/redfish_exporter/actions/workflows/build-goreleaser.yml)
+
 
 A Prometheus exporter to get metrics from Redfish based hardware servers.
 
 ## Configuration
 
 An example configure given as an example:
+
 ```yaml
 hosts:
   10.36.48.24:
@@ -35,15 +38,24 @@ There is also a Docker image available. The production build is handled by [gore
 
 ## Running
 
-- running directly on linux
-  ```sh
-  redfish_exporter --config.file=redfish_exporter.yml
-  ```
-  and run   `redfish_exporter -h`  for more options.
+### Running directly on Linux
 
-- running in container
+The exporter can run directly on Linux as a binary:
 
-  Also if you build it as a docker image, you can also run in container, just remember to replace your config  `/redfish_exporter.yml` in container.
+```sh
+redfish_exporter --config.file=redfish_exporter.yml
+```
+Run `redfish_exporter -h` for more options.
+
+### Running in container
+
+We also provide a ready to use container image via Github's Container registry. Run the following command in order to start the exporter via Docekr or Podman:
+
+```sh
+docker run -v ./config.demo.yaml:/redfish_exporter.yml:ro,z -p 9610:9610 ghcr.io/flxpeters/redfish_exporter:latest
+```
+
+Remember to replace your config  `/redfish_exporter.yml` in the container with your own one.
 
 ## Scraping
 
