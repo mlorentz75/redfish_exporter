@@ -126,17 +126,16 @@ Since the fork:
 
 We decided to fork the existing exorter for several reasons:
 
-- Slog instead of Apexlog: Just a detail, but since we have the `slog` package in Go 1.21 it should be used.
-- Remove log severity metrics: This is not a good metric from oint of view.
-  It also slows down the scrap time in an not accaptable amount of time.
+- Slog instead of Apexlog: Just a detail, but since we have the `slog` package in Go 1.21 available, it should be used.
+- Remove log severity metrics: This is not a good metric from my point of view.
+  It also slows down the scrape time by an non accaptable amount of time if there are many logs.
 - Updated dependencies: The upstream repository has several outdated libraries. We want to stay up to date.
-- Tests: The original code base had no tets. We aim to provide tests, for at least, all new code.
+- Tests: The original code base had no tests. We aim to provide tests for, at least, all new code.
 
 ## Acknowledgement
 
-- [gofish][5] provides the underlying library to interact servers
+* https://github.com/stmcginnis/gofish
+* https://github.com/jenningsloy318/redfish_exporter
 
 [1]: https://github.com/jenningsloy318/redfish_exporter/issues/7
-[3]: https://prometheus.io/
 [4]: https://github.com/prometheus/prometheus/wiki/Default-port-allocations
-[5]: https://github.com/stmcginnis/gofish
