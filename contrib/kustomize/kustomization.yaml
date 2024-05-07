@@ -6,7 +6,7 @@ resources:
   - service.yaml
   - service-monitor.yaml
 
-configMapGenerator:
+secretGenerator:
   - name: redfish-exporter-config
     files:
       - redfish_exporter.yml=config/redfish_exporter.yml
