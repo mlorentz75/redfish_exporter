@@ -9,5 +9,5 @@ spec:
     matchLabels:
       app: redfish-exporter
   endpoints:
-    - port: exporter
+    - targetPort: 9610
       path: /metrics
